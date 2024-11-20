@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE-edge">
+        <meta name="viewport" content="width-device-width, initial-scale=1.0">
+        <title>Grocery Website</title>
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css"/>
+
+
+
+        <!--font awesome link from cdnjs-->
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+        <!--custom css file-->
+        <link rel="stylesheet" href="css/style.css">
+
+
+    </head>
+    <body>
+<!--header section start-->
+
+<header class="header">
+
+<a href="#" class="logo"> <i class="fas fa-shopping-basket"></i>Utkrishta Provision Store </a>
+<nav class="navbar">
+    <a href="#home">Home</a> 
+    <a href="#features">Features</a> 
+    <a href="#product">Product</a> 
+    <a href="#categories">Categories</a> 
+
+
+
+</nav>
+
+<div class="icons">
+
+    <div class="fas fa-bars" id="menu-btn"></div>
+    <div class="fas fa-search" id="search-btn"></div>
+    <div class="fas fa-shopping-cart" id="cart-btn"></div>
+    <button id="logout-btn">Logout</button>
+    <div class="fas fa-user" id="login-toggle-btn"></div>
+
+
+</div>
+
+<form action="" class="search-form">
+<input type="search" id="search-box" placeholder="search here...">
+<label for="search-box" class="fas fa-search"></label>
+
+
+</form>
+
+<div class="login-form">
+    <h3>Login</h3>
+    
+    <div class="login-section">
+        <input type="email" id="login-email" placeholder="Enter Email" />
+        <input type="password" id="login-password" placeholder="Enter Password" />
+        <button class="btn" id="login-submit-btn">Login</button> 
+    </div>
+    
+    <p>Don't have an account? <a href="#" class="switch-form">Register</a></p>
+    
+    <div class="register-section" style="display: none;">
+        <input type="text" id="register-username" placeholder="Enter Username" />
+        <input type="email" id="register-email" placeholder="Enter Email" />
+        <input type="password" id="register-password" placeholder="Enter Password" />
+        <button class="btn" id="register-btn">Register</button>
+    </div>
+</div>
+  <!-- ================================================================== -->
+  <script>
+    let loginForm = document.querySelector('.login-form');
+    let navbar = document.querySelector('.navbar');
+    let searchForm = document.querySelector('.search-form');
+    let shoppingCart = document.querySelector('.shopping-cart');
+
+    // Toggle login form visibility
+    document.querySelector('#login-toggle-btn').onclick = () => {
+        loginForm.classList.toggle('active');
+        searchForm.classList.remove('active');
+        shoppingCart.classList.remove('active');
+        navbar.classList.remove('active');
+    }
+
+    // Toggle menu visibility
+    document.querySelector('#menu-btn').onclick = () => {
+        navbar.classList.toggle('active');
+        searchForm.classList.remove('active');
+        shoppingCart.classList.remove('active');
+        loginForm.classList.remove('active');
+    }
+
+    window.onscroll = () => {
+        searchForm.classList.remove('active');
+        shoppingCart.classList.remove('active');
+        loginForm.classList.remove('active');
+        navbar.classList.remove('active');
+    }
+
+    // Toggle between login and registration forms
+    let switchForm = document.querySelector('.switch-form');
+    let registerSection = document.querySelector('.register-section');
+    let loginSection = document.querySelector('.login-section');
+
+    switchForm.onclick = (e) => {
+        e.preventDefault();
+        // Toggle visibility of login and register sections
+        if (loginSection.style.display === "none") {
+            loginSection.style.display = "flex";
+            registerSection.style.display = "none";
+            switchForm.textContent = "Don't have an account? Register";
+        } else {
+            loginSection.style.display = "none";
+            registerSection.style.display = "flex";
+            switchForm.textContent = "Already have an account? Login";
+        }
+    };
+
+    // Handle registration form submission
+    document.querySelector('#register-btn').onclick = () => {
+        const username = document.querySelector('#register-username').value;
+        const email = document.querySelector('#register-email').value;
+        const password = document.querySelector('#register-password').value;
+
+        if (username && email && password) {
+            // Send data to PHP script via AJAX (fetch)
+            fetch('register.php', {
+                method: 'POST',
+                body: new URLSearchParams({
+                    'username': username,
+                    'email': email,
+                    'password': password
+                }),
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                }
+            })
+            .then(response => response.text())
+            .then(data => {
+                alert(data); 
+               
+                document.querySelector('.register-section').reset();
+                loginSection.style.display = "flex"; 
+                registerSection.style.display = "none"; 
+                switchForm.textContent = "Already have an account? Login";
+            })
+            .catch(error => console.error('Error:', error));
+        } else {
+            alert("Please fill out all fields.");
+        }
+    };
+
+    // Handle login form submission
+    document.querySelector('#login-submit-btn').onclick = () => {
+        const email = document.querySelector('#login-email').value;
+        const password = document.querySelector('#login-password').value;
+
+        if (email && password) {
+            // Send data to PHP script via AJAX (fetch)
+            fetch('login.php', {
+                method: 'POST',
+                body: new URLSearchParams({
+                    'email': email,
+                    'password': password
+                }),
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                }
+            })
+            .then(response => response.text())
+            .then(data => {
+                if (data === 'Login successful') {
+                    alert("Login successful!");
+                    window.location.href = "index.html";
+                    
+                    // Hide the login icon after successful login
+                    document.querySelector('#login-toggle-btn').style.display = 'none';
+                    
+                    // Show the logout button
+                    document.querySelector('#logout-btn').style.display = 'block';
+
+                    // Store login status in localStorage to persist on page refresh
+                    localStorage.setItem('loggedIn', 'true');
+                } else {
+                    alert(data); // Show the error message returned from PHP
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        } else {
+            alert("Please fill out both email and password.");
+        }
+    };
+
+    // Check login status on page load
+    window.onload = () => {
+        if (localStorage.getItem('loggedIn') === 'true') {
+            // Hide login button if logged in
+            document.querySelector('#login-toggle-btn').style.display = 'none'; 
+
+            // Show logout button
+            document.querySelector('#logout-btn').style.display = 'block'; 
+        } else {
+            // Ensure logout button is hidden if not logged in
+            document.querySelector('#logout-btn').style.display = 'none'; 
+        }
+    };
+
+    // Optionally, you can add a logout functionality
+    document.querySelector('#logout-btn').onclick = () => {
+        localStorage.removeItem('loggedIn'); 
+        document.querySelector('#login-toggle-btn').style.display = 'block'; 
+        document.querySelector('#logout-btn').style.display = 'none'; 
+        alert("Logged out successfully!");
+        window.location.href = "index.html"; 
+    };
+</script>
+
+   <!-- ===================================================================== -->
+
+
+
+<div class="shopping-cart">
+<div class="box">
+    <i class="fas fa-trash"></i>
+    <img src="Image\potato.jpg" alt="">
+    <div class="content">
+
+        <h3>Potato</h3>
+        <span class="price">40/- </span>
+        <span class="quantity"> qut : 100kg</span>
+    </div>
+</div>
+
+<div class="box">
+    <i class="fas fa-trash"></i>
+    <img src="Image\onion.jpg" alt="">
+    <div class="content">
+
+        <h3>Onion</h3>
+        <span class="price">40/- </span>
+        <span class="quantity"> qut : 100kg</span>
+    </div>
+</div>
+
+<div class="box">
+    <i class="fas fa-trash"></i>
+    <img src="Image\garlic.jpg" alt="">
+    <div class="content">
+
+        <h3>Garlic</h3>
+        <span class="price">20/- </span>
+        <span class="quantity"> qut : 50kg</span>
+    </div>
+</div>
+
+
+
+
+
+<div class="total"> total :100/- </div>
+<a href="#" class="btn">checkout</a>
+
+
+
+</div>
+
+
+<form action="" class="login-form">
+
+<h3>login now</h3>
+<input type="email" placeholder="Your email" class="box">
+<input type="password" placeholder="Your password" class="box">
+<p>Forget your password<a href="#">click here</a></p>
+<p>Don't have an account<a href="#">Create now</a></p>
+<input type="submit" value="login now" class="btn">
+
+
+
+
+</form>
+
+
+</header>
+
+
+<!--header section end-->
+
+
+<!--home section start-->
+
+
+<section class="home"  id="home" >
+
+<div class="content" > 
+<h3>Fresh And <span>Organic</span> Product For You</h3>
+<p>We are going to provide you Fresh vegetables!!</p>
+<a href="#" class="btn">shop now</a>
+
+</div>
+
+
+
+</section>
+
+<!--home section end-->
+
+
+
+<!--feature section start-->
+
+<section class="features" id="features">
+
+<h1 class="heading">Our <span>Features</span></h1>
+<div class="box-container">
+<div class="box">
+
+    <img src="Image\aboutus.jpeg" alt="">
+    <h3>About us!</h3>
+    <p>write here</p>
+    <a href="#" class="btn">Read more</a>
+
+</div>
+
+<div class="box">
+
+    <img src="Image\pro2.jpg" alt="">
+    <h3>Freash and Organic</h3>
+    <p>write here</p>
+    <a href="#" class="btn">Read more</a>
+    
+</div>
+
+<div class="box">
+
+    <img src="Image\payment.jpeg" alt="">
+    <h3>Easy payment</h3>
+    <p>write here</p>
+    <a href="#" class="btn">Read more</a>
+    
+</div>
+
+</div>
+
+</section>
+
+<!--feature section end-->
+
+
+<!--product section start-->
+
+<section class="products" id="products">
+
+    <h1 class="heading">Our <span>Products</span></h1>
+
+
+<div class="swiper product-slider">
+
+    <div class="swiper-wrapper">
+
+<div class="swiper-slide box">
+    <img src="Image\onion.jpg" alt="">
+    <h3>Organic Onion</h3>
+    <div class="price">40/- per Kg.</div>
+    <div class="stars">
+        <i class="fas fa-star" ></i>
+        <i class="fas fa-star" ></i>
+        <i class="fas fa-star" ></i>
+        <i class="fas fa-star" ></i>
+        <i class="fas fa-star-half-alt" ></i>
+        </div>
+
+<a href="#" class="btn">Add to cart</a>
+</div>
+
+<div class="swiper-slide box">
+    <img src="Image\potato.jpg" alt="">
+    <h3>Organic Potato</h3>
+    <div class="price">40/- per Kg.</div>
+    <div class="stars">
+        <i class="fas fa-star" ></i>
+        <i class="fas fa-star" ></i>
+        <i class="fas fa-star" ></i>
+        <i class="fas fa-star" ></i>
+        <i class="fas fa-star-half-alt" ></i>
+        </div>
+
+<a href="#" class="btn">Add to cart</a>
+</div>
+
+
+<div class="swiper-slide box">
+    <img src="Image\garlic.jpg" alt="">
+    <h3>Organic Garlic</h3>
+    <div class="price">40/- </div>
+    <div class="stars">
+        <i class="fas fa-star" ></i>
+        <i class="fas fa-star" ></i>
+        <i class="fas fa-star" ></i>
+        <i class="fas fa-star" ></i>
+        <i class="fas fa-star-half-alt" ></i>
+        </div>
+
+<a href="#" class="btn">Add to cart</a>
+</div>
+
+
+<div class="swiper-slide box">
+    <img src="Image\ginger.jpg" alt="">
+    <h3>Organic Ginger</h3>
+    <div class="price">30/- </div>
+    <div class="stars">
+        <i class="fas fa-star" ></i>
+        <i class="fas fa-star" ></i>
+        <i class="fas fa-star" ></i>
+        <i class="fas fa-star" ></i>
+        <i class="fas fa-star-half-alt" ></i>
+        </div>
+
+<a href="#" class="btn">Add to cart</a>
+</div>
+
+
+<div class="swiper-slide box">
+    <img src="Image\tomato.jpg" alt="">
+    <h3> Organic Tomato</h3>
+    <div class="price">40/- per Kg.</div>
+    <div class="stars">
+        <i class="fas fa-star" ></i>
+        <i class="fas fa-star" ></i>
+        <i class="fas fa-star" ></i>
+        <i class="fas fa-star" ></i>
+        <i class="fas fa-star-half-alt" ></i>
+        </div>
+
+<a href="#" class="btn">Add to cart</a>
+</div>
+
+<div class="swiper-slide box">
+    <img src="Image\spinach.jpeg" alt="">
+    <h3>Spinach</h3>
+    <div class="price">15 Rs. </div>
+    <div class="stars">
+        <i class="fas fa-star" ></i>
+        <i class="fas fa-star" ></i>
+        <i class="fas fa-star" ></i>
+        <i class="fas fa-star" ></i>
+        <i class="fas fa-star-half-alt" ></i>
+        </div>
+
+<a href="#" class="btn">Add to cart</a>
+</div>
+
+<div class="swiper-slide box">
+    <img src="Image\cucumber.jpeg" alt="">
+    <h3>Organic Cucumber</h3>
+    <div class="price">35/- per Kg.</div>
+    <div class="stars">
+        <i class="fas fa-star" ></i>
+        <i class="fas fa-star" ></i>
+        <i class="fas fa-star" ></i>
+        <i class="fas fa-star" ></i>
+        <i class="fas fa-star-half-alt" ></i>
+        </div>
+
+<a href="#" class="btn">Add to cart</a>
+</div>
+
+<div class="swiper-slide box">
+    <img src="Image\broccoli.jpeg" alt="">
+    <h3>Broccoli</h3>
+    <div class="price">40/- per Kg.</div>
+    <div class="stars">
+        <i class="fas fa-star" ></i>
+        <i class="fas fa-star" ></i>
+        <i class="fas fa-star" ></i>
+        <i class="fas fa-star" ></i>
+        <i class="fas fa-star-half-alt" ></i>
+        </div>
+
+<a href="#" class="btn">Add to cart</a>
+</div>
+
+</div>
+
+
+</div>
+
+<div class="swiper product-slider">
+
+    <div class="swiper-wrapper">
+
+<div class="swiper-slide box">
+    <img src="Image\onion.jpg" alt="">
+    <h3>Organic Onion</h3>
+    <div class="price">40/- per Kg.</div>
+    <div class="stars">
+        <i class="fas fa-star" ></i>
+        <i class="fas fa-star" ></i>
+        <i class="fas fa-star" ></i>
+        <i class="fas fa-star" ></i>
+        <i class="fas fa-star-half-alt" ></i>
+        </div>
+
+<a href="#" class="btn">Add to cart</a>
+</div>
+
+<div class="swiper-slide box">
+    <img src="Image\potato.jpg" alt="">
+    <h3>Organic Potato</h3>
+    <div class="price">40/- per Kg.</div>
+    <div class="stars">
+        <i class="fas fa-star" ></i>
+        <i class="fas fa-star" ></i>
+        <i class="fas fa-star" ></i>
+        <i class="fas fa-star" ></i>
+        <i class="fas fa-star-half-alt" ></i>
+        </div>
+
+<a href="#" class="btn">Add to cart</a>
+</div>
+
+
+<div class="swiper-slide box">
+    <img src="Image\garlic.jpg" alt="">
+    <h3>Organic Garlic</h3>
+    <div class="price">40/- </div>
+    <div class="stars">
+        <i class="fas fa-star" ></i>
+        <i class="fas fa-star" ></i>
+        <i class="fas fa-star" ></i>
+        <i class="fas fa-star" ></i>
+        <i class="fas fa-star-half-alt" ></i>
+        </div>
+
+<a href="#" class="btn">Add to cart</a>
+</div>
+
+
+<div class="swiper-slide box">
+    <img src="Image\ginger.jpg" alt="">
+    <h3>Organic Ginger</h3>
+    <div class="price">30/- </div>
+    <div class="stars">
+        <i class="fas fa-star" ></i>
+        <i class="fas fa-star" ></i>
+        <i class="fas fa-star" ></i>
+        <i class="fas fa-star" ></i>
+        <i class="fas fa-star-half-alt" ></i>
+        </div>
+
+<a href="#" class="btn">Add to cart</a>
+</div>
+
+
+<div class="swiper-slide box">
+    <img src="Image\tomato.jpg" alt="">
+    <h3> Organic Tomato</h3>
+    <div class="price">40/- per Kg.</div>
+    <div class="stars">
+        <i class="fas fa-star" ></i>
+        <i class="fas fa-star" ></i>
+        <i class="fas fa-star" ></i>
+        <i class="fas fa-star" ></i>
+        <i class="fas fa-star-half-alt" ></i>
+        </div>
+
+<a href="#" class="btn">Add to cart</a>
+</div>
+
+<div class="swiper-slide box">
+    <img src="Image\spinach.jpeg" alt="">
+    <h3>Spinach</h3>
+    <div class="price">15 Rs. </div>
+    <div class="stars">
+        <i class="fas fa-star" ></i>
+        <i class="fas fa-star" ></i>
+        <i class="fas fa-star" ></i>
+        <i class="fas fa-star" ></i>
+        <i class="fas fa-star-half-alt" ></i>
+        </div>
+
+<a href="#" class="btn">Add to cart</a>
+</div>
+
+<div class="swiper-slide box">
+    <img src="Image\cucumber.jpeg" alt="">
+    <h3>Organic Cucumber</h3>
+    <div class="price">35/- per Kg.</div>
+    <div class="stars">
+        <i class="fas fa-star" ></i>
+        <i class="fas fa-star" ></i>
+        <i class="fas fa-star" ></i>
+        <i class="fas fa-star" ></i>
+        <i class="fas fa-star-half-alt" ></i>
+        </div>
+
+<a href="#" class="btn">Add to cart</a>
+</div>
+
+<div class="swiper-slide box">
+    <img src="Image\broccoli.jpeg" alt="">
+    <h3>Broccoli</h3>
+    <div class="price">40/- per Kg.</div>
+    <div class="stars">
+        <i class="fas fa-star" ></i>
+        <i class="fas fa-star" ></i>
+        <i class="fas fa-star" ></i>
+        <i class="fas fa-star" ></i>
+        <i class="fas fa-star-half-alt" ></i>
+        </div>
+
+<a href="#" class="btn">Add to cart</a>
+</div>
+
+
+
+    </div>
+
+
+
+
+
+
+</div>
+
+</section>
+
+<!--product section end-->
+
+
+<!--category section end-->
+
+<section class="categories" id="categories">
+
+<h1 class="categories">Product <span>categories</span></h1>
+
+<div class="box-container">
+<div class="box">
+    <img src="Image\pro2.jpg" alt="" >
+    <h3>Vegitables</h3>
+    <p>Upto 45% off</p>
+     <a href="#" class="btn" >Shop now</a>
+
+</div>
+
+<div class="box">
+    <img src="Image\f2.jpeg" alt="" >
+    <h3>Fresh Fruits</h3>
+    <p>Upto 45% off</p>
+     <a href="#" class="btn" >Shop now</a>
+
+</div>
+
+
+<div class="box">
+    <img src="Image\pro1.jpg" alt="" >
+    <h3>Dairy Products</h3>
+    <p>Upto 45% off</p>
+     <a href="#" class="btn" >Shop now</a>
+
+</div>
+
+<div class="box">
+    <img src="Image\pro3.jpg" alt="" >
+    <h3>Spices</h3>
+    <p>Upto 45% off</p>
+     <a href="#" class="btn" >Shop now</a>
+
+</div>
+
+</div>
+
+</section>
+<!--category section end-->
+
+
+
+
+
+
+
+
+
+<!--footer section start-->
+
+<section class="footer">
+
+<div class="box-container">
+
+<div class="box">
+<h3>Utkrishta Provision Store<i class="fas fa-shopping-basket"></i></h3>
+<p>Follow us here!!</p>
+<div class="share">
+    <a href="#" class="fab fa-facebook-f"></a>
+    <a href="#" class="fab fa-instagram"></a>
+    <a href="#" class="fab fa-twitter"></a>
+    <a href="#" class="fab fa-linkedin"></a>
+
+</div>
+</div>
+
+<div class="box">
+    <h3>Contact Information</h3>
+     <a href="#" class="links"> <i class="fas fa-phone"></i>+9686597867</a>
+     <a href="#" class="links"> <i class="fas fa-phone"></i>+9680097833</a>
+     <a href="#" class="links"> <i class="fas fa-envelope"></i>utkrishtaprovisionstore@gmail.com</a>
+     <a href="#" class="links"> <i class="fas fa-map-marker-alt"></i>Chakan, Pune-410501</a>
+     
+
+</div>
+
+
+
+<div class="box">
+    <h3>Quick Links</h3>
+     <a href="#" class="links"> <i class="fas fa-arrow-right"></i>Home</a>
+     <a href="#" class="links"> <i class="fas fa-arrow-right"></i>Features</a>
+     <a href="#" class="links"> <i class="fas fa-arrow-right"></i>Products</a>
+     <a href="#" class="links"> <i class="fas fa-arrow-right"></i>Categories</a>
+     
+
+</div>
+
+<div class="box">
+    <h3>Newsletter</h3>
+     <p>Subscribe for latest updates</p>
+     <input type="email" placeholder="your email" class="email">
+     <input type="submit" value="subscribe"  class="btn">
+
+
+    </div>
+
+</div>
+
+</section>
+
+
+<!--footer section end-->
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+
+        <!--custom js file link-->
+        <script src="C:\GroceryWebsite_ProjectMsem1\webpage\script.js"> </script>
+            
+    </body>
+</html>
